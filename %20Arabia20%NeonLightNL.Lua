@@ -1,5 +1,5 @@
 -- Neon Lightings.Lua (NL) By arabia
--- Gravity + FOV com SLIDERS + Pulo funciona em Gravity 0
+-- Gravity + FOV com botão de Ativar/Desativar
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -35,6 +35,8 @@ local noclip = false
 local espEnabled = false
 local freecam = false
 local antiLagEnabled = false
+local gravityEnabled = false
+local fovEnabled = false
 
 local bodyVelocity = nil
 local bodyGyro = nil
@@ -846,47 +848,86 @@ AntiInfo.TextYAlignment = Enum.TextYAlignment.Top
 AntiInfo.ZIndex = 2
 
 -- =========================================================
--- ====================== GRAVITY (SLIDERS) ================
+-- ====================== GRAVITY ==========================
 -- =========================================================
-createSlider(PageGravity, 25, "Gravidade FORA do carro", 0, 300, 196, Color3.fromRGB(0, 200, 255), function(val)
+local GravityToggleBtn = createButton(PageGravity, "Gravidade: OFF", 10, Color3.fromRGB(0, 200, 255))
+
+createSlider(PageGravity, 55, "Gravidade FORA do carro", 0, 300, 196, Color3.fromRGB(0, 200, 255), function(val)
 	gravityOutside = val
 end)
 
-createSlider(PageGravity, 100, "Gravidade DENTRO do carro", 0, 300, 196, Color3.fromRGB(0, 180, 140), function(val)
+createSlider(PageGravity, 125, "Gravidade DENTRO do carro", 0, 300, 196, Color3.fromRGB(0, 180, 140), function(val)
 	gravityInside = val
 end)
 
 local GravInfo = Instance.new("TextLabel", PageGravity)
-GravInfo.Size = UDim2.new(0.88, 0, 0, 80)
-GravInfo.Position = UDim2.new(0.06, 0, 0, 180)
+GravInfo.Size = UDim2.new(0.88, 0, 0, 70)
+GravInfo.Position = UDim2.new(0.06, 0, 0, 200)
 GravInfo.BackgroundTransparency = 1
-GravInfo.Text = "Arraste os sliders para ajustar.\nPulo funciona mesmo com Gravidade 0!\nDetecta automaticamente se está no veículo."
+GravInfo.Text = "Ative o botão acima para usar a gravidade.\nPulo funciona mesmo com Gravidade 0.\nDetecta automaticamente se está no veículo."
 GravInfo.TextColor3 = Color3.fromRGB(150, 150, 165)
 GravInfo.Font = Enum.Font.Gotham
 GravInfo.TextSize = 12
 GravInfo.TextYAlignment = Enum.TextYAlignment.Top
 GravInfo.ZIndex = 2
 
+local function toggleGravity()
+	gravityEnabled = not gravityEnabled
+	playClickSound()
+
+	if gravityEnabled then
+		setState(GravityToggleBtn, true, "Gravidade: ON", "Gravidade: OFF", Color3.fromRGB(0, 160, 200))
+	else
+		workspace.Gravity = 196.2
+		setState(GravityToggleBtn, false, "Gravidade: ON", "Gravidade: OFF", Color3.fromRGB(0, 160, 200))
+	end
+end
+
+GravityToggleBtn.MouseButton1Click:Connect(toggleGravity)
+
 -- =========================================================
--- ====================== FOV (SLIDER) =====================
+-- ====================== FOV ==============================
 -- =========================================================
-createSlider(PageFOV, 40, "FOV (Campo de Visão)", 40, 120, 70, Color3.fromRGB(255, 140, 50), function(val)
+local FOVToggleBtn = createButton(PageFOV, "FOV: OFF", 10, Color3.fromRGB(255, 140, 50))
+
+createSlider(PageFOV, 55, "FOV (Campo de Visão)", 40, 120, 70, Color3.fromRGB(255, 140, 50), function(val)
 	currentFOV = val
-	pcall(function()
-		workspace.CurrentCamera.FieldOfView = val
-	end)
+	if fovEnabled then
+		pcall(function()
+			workspace.CurrentCamera.FieldOfView = val
+		end)
+	end
 end)
 
 local FOVInfo = Instance.new("TextLabel", PageFOV)
 FOVInfo.Size = UDim2.new(0.88, 0, 0, 60)
-FOVInfo.Position = UDim2.new(0.06, 0, 0, 120)
+FOVInfo.Position = UDim2.new(0.06, 0, 0, 130)
 FOVInfo.BackgroundTransparency = 1
-FOVInfo.Text = "Arraste para aumentar ou reduzir o FOV.\nValores altos = visão mais ampla."
+FOVInfo.Text = "Ative o botão acima para usar o FOV.\nValores altos = visão mais ampla."
 FOVInfo.TextColor3 = Color3.fromRGB(150, 150, 165)
 FOVInfo.Font = Enum.Font.Gotham
 FOVInfo.TextSize = 12
 FOVInfo.TextYAlignment = Enum.TextYAlignment.Top
 FOVInfo.ZIndex = 2
+
+local function toggleFOV()
+	fovEnabled = not fovEnabled
+	playClickSound()
+
+	if fovEnabled then
+		pcall(function()
+			workspace.CurrentCamera.FieldOfView = currentFOV
+		end)
+		setState(FOVToggleBtn, true, "FOV: ON", "FOV: OFF", Color3.fromRGB(220, 120, 30))
+	else
+		pcall(function()
+			workspace.CurrentCamera.FieldOfView = 70
+		end)
+		setState(FOVToggleBtn, false, "FOV: ON", "FOV: OFF", Color3.fromRGB(220, 120, 30))
+	end
+end
+
+FOVToggleBtn.MouseButton1Click:Connect(toggleFOV)
 
 -- =========================================================
 -- ====================== FUNÇÕES ==========================
@@ -1114,7 +1155,9 @@ end
 
 -- ====================== SISTEMA DE GRAVIDADE ======================
 RunService.Heartbeat:Connect(function()
+	if not gravityEnabled then return end
 	if not humanoid or not humanoid.Parent then return end
+
 	if humanoid.Sit and humanoid.SeatPart then
 		workspace.Gravity = gravityInside
 	else
@@ -1122,17 +1165,16 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- ====================== PULO CUSTOMIZADO (funciona com Gravity 0) ======================
+-- ====================== PULO CUSTOMIZADO (Gravity 0) ======================
 UserInputService.JumpRequest:Connect(function()
+	if not gravityEnabled then return end
 	if not humanoid or not rootPart or not humanoid.Parent then return end
 	if flying or freecam then return end
 
 	local currentGrav = workspace.Gravity
-	if currentGrav > 5 then return end   -- só ativa quando gravidade está baixa
+	if currentGrav > 5 then return end
 
-	-- Aplica força de pulo manual
 	local jumpPower = 58
-
 	rootPart.AssemblyLinearVelocity = Vector3.new(
 		rootPart.AssemblyLinearVelocity.X,
 		jumpPower,
@@ -1194,4 +1236,4 @@ task.delay(2.8, function()
 	Main.Visible = true
 end)
 
-print("✅ Neon Lighting's (NL) | Pulo funciona em Gravity 0")
+print("✅ Neon Lighting's (NL) | Gravity + FOV com botão Ativar/Desativar")
