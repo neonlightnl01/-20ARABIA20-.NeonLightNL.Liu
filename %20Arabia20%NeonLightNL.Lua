@@ -1,5 +1,5 @@
 -- Neon Lightings.Lua (NL) By arabia
--- Gravity + FOV com botão de Ativar/Desativar
+-- Ícone Flutuante DEFINITIVO (abre de verdade)
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -274,6 +274,102 @@ CloseBtn.TextSize = 20
 CloseBtn.AutoButtonColor = false
 CloseBtn.ZIndex = 5
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+
+-- =========================================================
+-- ====================== FUNÇÕES OPEN / CLOSE (ANTES) =====
+-- =========================================================
+local FloatingIcon -- declarado antes
+
+local function openHub()
+	hubOpen = true
+	Main.Visible = true
+	if FloatingIcon then
+		FloatingIcon.Visible = false
+	end
+	playClickSound()
+end
+
+local function closeHub()
+	hubOpen = false
+	Main.Visible = false
+	if FloatingIcon then
+		FloatingIcon.Visible = true
+	end
+	playClickSound()
+end
+
+local function toggleHub()
+	if hubOpen then
+		closeHub()
+	else
+		openHub()
+	end
+end
+
+-- =========================================================
+-- ====================== ÍCONE FLUTUANTE (DEFINITIVO) =====
+-- =========================================================
+FloatingIcon = Instance.new("ImageButton")
+FloatingIcon.Name = "FloatingIcon"
+FloatingIcon.Size = UDim2.new(0, 62, 0, 62)
+FloatingIcon.Position = UDim2.new(1, -80, 0.5, -31)
+FloatingIcon.BackgroundColor3 = Color3.fromRGB(12, 12, 16)
+FloatingIcon.BackgroundTransparency = 0.15
+FloatingIcon.Image = "rbxassetid://COLOQUE_O_ID_AQUI"
+FloatingIcon.ScaleType = Enum.ScaleType.Fit
+FloatingIcon.Visible = false
+FloatingIcon.ZIndex = 50
+FloatingIcon.Parent = ScreenGui
+
+Instance.new("UICorner", FloatingIcon).CornerRadius = UDim.new(0, 14)
+
+local iconStroke = Instance.new("UIStroke", FloatingIcon)
+iconStroke.Color = Color3.fromRGB(0, 180, 255)
+iconStroke.Thickness = 2.5
+iconStroke.Transparency = 0.1
+
+-- Lógica DEFINITIVA de clique + arraste
+local dragStartPos = nil
+local iconStartPos = nil
+local isDragging = false
+
+FloatingIcon.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		isDragging = false
+		dragStartPos = input.Position
+		iconStartPos = FloatingIcon.Position
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if not dragStartPos then return end
+	if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
+
+	local delta = input.Position - dragStartPos
+	if delta.Magnitude > 10 then
+		isDragging = true
+	end
+
+	FloatingIcon.Position = UDim2.new(
+		iconStartPos.X.Scale,
+		iconStartPos.X.Offset + delta.X,
+		iconStartPos.Y.Scale,
+		iconStartPos.Y.Offset + delta.Y
+	)
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		if dragStartPos then
+			if not isDragging then
+				-- FOI UM CLIQUE → ABRE O HUB
+				openHub()
+			end
+			dragStartPos = nil
+			isDragging = false
+		end
+	end
+end)
 
 -- ====================== TABS (6 ABAS) ======================
 local function createTab(text, x)
@@ -930,13 +1026,8 @@ end
 FOVToggleBtn.MouseButton1Click:Connect(toggleFOV)
 
 -- =========================================================
--- ====================== FUNÇÕES ==========================
+-- ====================== RESTANTE DAS FUNÇÕES =============
 -- =========================================================
-local function toggleHub()
-	hubOpen = not hubOpen
-	Main.Visible = hubOpen
-end
-
 local function toggleFly()
 	if freecam then return end
 	flying = not flying
@@ -1188,7 +1279,7 @@ NoclipBtn.MouseButton1Click:Connect(toggleNoclip)
 ESPBtn.MouseButton1Click:Connect(toggleESP)
 FreeCamBtn.MouseButton1Click:Connect(toggleFreeCam)
 AntiLagBtn.MouseButton1Click:Connect(toggleAntiLag)
-CloseBtn.MouseButton1Click:Connect(toggleHub)
+CloseBtn.MouseButton1Click:Connect(closeHub)
 
 UserInputService.InputBegan:Connect(function(input, gp)
 	if gp then return end
@@ -1236,4 +1327,4 @@ task.delay(2.8, function()
 	Main.Visible = true
 end)
 
-print("✅ Neon Lighting's (NL) | Gravity + FOV com botão Ativar/Desativar")
+print("✅ Neon Lighting's (NL) | Ícone Flutuante DEFINITIVO")
