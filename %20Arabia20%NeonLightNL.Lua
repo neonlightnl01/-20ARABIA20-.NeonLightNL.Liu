@@ -1,5 +1,5 @@
 -- Neon Lightings.Lua (NL) By arabia
--- Sistema de Chave + Interface Melhorada + Ícone NL
+-- Sistema de Chave + Farol/Setas + Interface Melhorada
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -15,7 +15,7 @@ local camera = workspace.CurrentCamera
 -- =========================================================
 -- ====================== SISTEMA DE CHAVE =================
 -- =========================================================
-local correctKey = "NLEXCLUSIVA1"   -- << ALTERE A CHAVE AQUI
+local correctKey = "NL01"   -- << ALTERE A CHAVE AQUI
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NeonLightingHub"
@@ -101,7 +101,6 @@ local keyAccepted = false
 local function acceptKey()
 	keyAccepted = true
 	KeyFrame:Destroy()
-	-- Continua o script normalmente
 end
 
 VerifyBtn.MouseButton1Click:Connect(function()
@@ -131,7 +130,6 @@ KeyBox.FocusLost:Connect(function(enter)
 	end
 end)
 
--- Espera a chave ser aceita antes de continuar
 repeat task.wait() until keyAccepted
 
 -- =========================================================
@@ -160,6 +158,7 @@ local freecam = false
 local antiLagEnabled = false
 local gravityEnabled = false
 local fovEnabled = false
+local lightsEnabled = false
 
 local bodyVelocity = nil
 local bodyGyro = nil
@@ -698,11 +697,14 @@ local function setState(btn, state, onText, offText, color)
 	btn.BackgroundColor3 = state and color or Color3.fromRGB(22, 22, 28)
 end
 
--- Conteúdo das páginas (Principal, Shaders, etc.)
+-- =========================================================
+-- ====================== PÁGINA PRINCIPAL =================
+-- =========================================================
 local FlyBtn     = createButton(PageMain, "Fly: OFF", Color3.fromRGB(0, 200, 255))
 local NoclipBtn  = createButton(PageMain, "Noclip: OFF", Color3.fromRGB(0, 255, 150))
 local ESPBtn     = createButton(PageMain, "ESP: OFF", Color3.fromRGB(255, 80, 80))
 local FreeCamBtn = createButton(PageMain, "FreeCam: OFF", Color3.fromRGB(255, 150, 50))
+local LightsBtn  = createButton(PageMain, "Farol + Setas: OFF", Color3.fromRGB(255, 220, 50))
 
 createSlider(PageMain, "Corrida", 8, 100, 16, Color3.fromRGB(255, 200, 0), function(val)
 	walkSpeed = val
@@ -713,6 +715,9 @@ createSlider(PageMain, "Voo", 20, 200, 55, Color3.fromRGB(0, 200, 255), function
 	flySpeed = val
 end)
 
+-- =========================================================
+-- ====================== SHADERS ==========================
+-- =========================================================
 local FullbrightBtn   = createButton(PageShaders, "Fullbright: OFF", Color3.fromRGB(255, 220, 50))
 local NoFogBtn        = createButton(PageShaders, "Sem Névoa: OFF", Color3.fromRGB(100, 200, 255))
 local BloomBtn        = createButton(PageShaders, "Bloom: OFF", Color3.fromRGB(255, 100, 200))
@@ -877,6 +882,7 @@ HighContrastBtn.MouseButton1Click:Connect(toggleHighContrast)
 BlackWhiteBtn.MouseButton1Click:Connect(toggleBlackWhite)
 BlurBtn.MouseButton1Click:Connect(toggleBlur)
 
+-- AIMBOT
 local AimBtn = createButton(PageAim, "Aim Assist: OFF", Color3.fromRGB(255, 70, 70))
 
 local TargetLabel = Instance.new("TextLabel")
@@ -1006,6 +1012,7 @@ createSlider(PageAim, "Distância", 50, 5000, 5000, Color3.fromRGB(255, 150, 50)
 	aimMaxDistance = v
 end)
 
+-- ANTILAG
 local AntiLagBtn = createButton(PageAnti, "Anti-Lag: OFF", Color3.fromRGB(180, 100, 255))
 
 local FPSLabel = Instance.new("TextLabel")
@@ -1064,6 +1071,7 @@ AntiInfo.TextSize = 12
 AntiInfo.TextYAlignment = Enum.TextYAlignment.Top
 AntiInfo.Parent = PageAnti
 
+-- GRAVITY
 local GravityToggleBtn = createButton(PageGravity, "Gravidade: OFF", Color3.fromRGB(0, 200, 255))
 
 createSlider(PageGravity, "Gravidade FORA do carro", 0, 300, 196, Color3.fromRGB(0, 200, 255), function(val)
@@ -1088,7 +1096,7 @@ local function toggleGravity()
 	gravityEnabled = not gravityEnabled
 	playClickSound()
 	if gravityEnabled then
-		setState(GravityToggleBtn, true, "Gravidade: ON", "Gravidade: OFF", Color3.fromRGB(0,200))
+		setState(GravityToggleBtn, true, "Gravidade: ON", "Gravidade: OFF", Color3.fromRGB(0, 160, 200))
 	else
 		workspace.Gravity = 196.2
 		setState(GravityToggleBtn, false, "Gravidade: ON", "Gravidade: OFF", Color3.fromRGB(0, 160, 200))
@@ -1096,6 +1104,7 @@ local function toggleGravity()
 end
 GravityToggleBtn.MouseButton1Click:Connect(toggleGravity)
 
+-- FOV
 local FOVToggleBtn = createButton(PageFOV, "FOV: OFF", Color3.fromRGB(255, 140, 50))
 
 createSlider(PageFOV, "FOV (Campo de Visão)", 40, 120, 70, Color3.fromRGB(255, 140, 50), function(val)
@@ -1128,7 +1137,20 @@ local function toggleFOV()
 end
 FOVToggleBtn.MouseButton1Click:Connect(toggleFOV)
 
--- Funções de movimento (Fly, Noclip, ESP, etc.)
+-- =========================================================
+-- ====================== FUNÇÕES ==========================
+-- =========================================================
+
+local function toggleLights()
+	lightsEnabled = not lightsEnabled
+	playClickSound()
+	if lightsEnabled then
+		setState(LightsBtn, true, "Farol + Setas: ON", "Farol + Setas: OFF", Color3.fromRGB(220, 180, 30))
+	else
+		setState(LightsBtn, false, "Farol + Setas: ON", "Farol + Setas: OFF", Color3.fromRGB(220, 180, 30))
+	end
+end
+
 local function toggleFly()
 	if freecam then return end
 	flying = not flying
@@ -1345,6 +1367,7 @@ local function toggleFreeCam()
 	end
 end
 
+-- ====================== SISTEMA DE GRAVIDADE ======================
 RunService.Heartbeat:Connect(function()
 	if not gravityEnabled then return end
 	if not humanoid or not humanoid.Parent then return end
@@ -1355,6 +1378,32 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
+-- ====================== SISTEMA DE FAROL + SETAS ======================
+RunService.Heartbeat:Connect(function()
+	if not lightsEnabled then return end
+	if not humanoid or not humanoid.Parent then return end
+	if not humanoid.Sit or not humanoid.SeatPart then return end
+
+	local vehicle = humanoid.SeatPart:FindFirstAncestorOfClass("Model") or humanoid.SeatPart.Parent
+	if not vehicle then return end
+
+	for _, obj in pairs(vehicle:GetDescendants()) do
+		if obj:IsA("SpotLight") or obj:IsA("SurfaceLight") or obj:IsA("PointLight") then
+			obj.Enabled = true
+		end
+
+		local name = obj.Name:lower()
+		if obj:IsA("BasePart") then
+			if name:find("farol") or name:find("headlight") or name:find("light") or name:find("seta") or name:find("blink") or name:find("signal") or name:find("indicator") then
+				if obj.Material == Enum.Material.Neon then
+					obj.Transparency = 0
+				end
+			end
+		end
+	end
+end)
+
+-- ====================== PULO CUSTOMIZADO ======================
 UserInputService.JumpRequest:Connect(function()
 	if not gravityEnabled then return end
 	if not humanoid or not rootPart or not humanoid.Parent then return end
@@ -1367,10 +1416,12 @@ UserInputService.JumpRequest:Connect(function()
 	)
 end)
 
+-- Conexões
 FlyBtn.MouseButton1Click:Connect(toggleFly)
 NoclipBtn.MouseButton1Click:Connect(toggleNoclip)
 ESPBtn.MouseButton1Click:Connect(toggleESP)
 FreeCamBtn.MouseButton1Click:Connect(toggleFreeCam)
+LightsBtn.MouseButton1Click:Connect(toggleLights)
 AntiLagBtn.MouseButton1Click:Connect(toggleAntiLag)
 CloseBtn.MouseButton1Click:Connect(closeHub)
 
@@ -1419,4 +1470,4 @@ task.delay(2.8, function()
 	Main.Visible = true
 end)
 
-print("✅ Neon Lighting's (NL) | Sistema de Chave ativo")
+print("✅ Neon Lighting's (NL) | Farol + Setas adicionado")
