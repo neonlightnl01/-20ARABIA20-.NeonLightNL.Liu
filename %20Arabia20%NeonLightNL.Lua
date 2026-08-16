@@ -15,7 +15,7 @@ local camera = workspace.CurrentCamera
 -- =========================================================
 -- ====================== SISTEMA DE CHAVE =================
 -- =========================================================
-local correctKey = "NL01"   -- << ALTERE A CHAVE AQUI
+local correctKey = "NLEXCLUSIVA1"   -- << ALTERE A CHAVE AQUI
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NeonLightingHub"
