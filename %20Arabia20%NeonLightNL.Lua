@@ -1,5 +1,5 @@
 -- Neon Lightings.Lua (NL) By arabia
--- Interface Melhorada + Ícone com "NL"
+-- Sistema de Chave + Interface Melhorada + Ícone NL
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -12,7 +12,132 @@ local UserGameSettings = UserSettings():GetService("UserGameSettings")
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
--- ====================== CHARACTER ======================
+-- =========================================================
+-- ====================== SISTEMA DE CHAVE =================
+-- =========================================================
+local correctKey = "NL01"   -- << ALTERE A CHAVE AQUI
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NeonLightingHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Tela de Chave
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Name = "KeySystem"
+KeyFrame.Size = UDim2.new(0, 320, 0, 210)
+KeyFrame.Position = UDim2.new(0.5, -160, 0.5, -105)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
+KeyFrame.BorderSizePixel = 0
+KeyFrame.ZIndex = 200
+KeyFrame.Parent = ScreenGui
+
+Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 14)
+
+local keyStroke = Instance.new("UIStroke", KeyFrame)
+keyStroke.Color = Color3.fromRGB(0, 190, 255)
+keyStroke.Thickness = 2
+
+local KeyTitle = Instance.new("TextLabel", KeyFrame)
+KeyTitle.Size = UDim2.new(1, 0, 0, 35)
+KeyTitle.Position = UDim2.new(0, 0, 0, 15)
+KeyTitle.BackgroundTransparency = 1
+KeyTitle.Text = "Neon Lighting's"
+KeyTitle.TextColor3 = Color3.fromRGB(0, 220, 255)
+KeyTitle.Font = Enum.Font.GothamBold
+KeyTitle.TextSize = 20
+KeyTitle.ZIndex = 201
+
+local KeySub = Instance.new("TextLabel", KeyFrame)
+KeySub.Size = UDim2.new(1, 0, 0, 20)
+KeySub.Position = UDim2.new(0, 0, 0, 48)
+KeySub.BackgroundTransparency = 1
+KeySub.Text = "Digite a chave de acesso"
+KeySub.TextColor3 = Color3.fromRGB(160, 160, 175)
+KeySub.Font = Enum.Font.Gotham
+KeySub.TextSize = 13
+KeySub.ZIndex = 201
+
+local KeyBox = Instance.new("TextBox", KeyFrame)
+KeyBox.Size = UDim2.new(0.8, 0, 0, 38)
+KeyBox.Position = UDim2.new(0.1, 0, 0, 85)
+KeyBox.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+KeyBox.Text = ""
+KeyBox.PlaceholderText = "Chave..."
+KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 130)
+KeyBox.Font = Enum.Font.Gotham
+KeyBox.TextSize = 15
+KeyBox.ClearTextOnFocus = false
+KeyBox.ZIndex = 201
+Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
+
+local KeyError = Instance.new("TextLabel", KeyFrame)
+KeyError.Size = UDim2.new(1, 0, 0, 18)
+KeyError.Position = UDim2.new(0, 0, 0, 128)
+KeyError.BackgroundTransparency = 1
+KeyError.Text = ""
+KeyError.TextColor3 = Color3.fromRGB(255, 80, 80)
+KeyError.Font = Enum.Font.Gotham
+KeyError.TextSize = 12
+KeyError.ZIndex = 201
+
+local VerifyBtn = Instance.new("TextButton", KeyFrame)
+VerifyBtn.Size = UDim2.new(0.8, 0, 0, 38)
+VerifyBtn.Position = UDim2.new(0.1, 0, 0, 155)
+VerifyBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 200)
+VerifyBtn.Text = "Verificar Chave"
+VerifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+VerifyBtn.Font = Enum.Font.GothamBold
+VerifyBtn.TextSize = 15
+VerifyBtn.AutoButtonColor = false
+VerifyBtn.ZIndex = 201
+Instance.new("UICorner", VerifyBtn).CornerRadius = UDim.new(0, 8)
+
+local keyAccepted = false
+
+local function acceptKey()
+	keyAccepted = true
+	KeyFrame:Destroy()
+	-- Continua o script normalmente
+end
+
+VerifyBtn.MouseButton1Click:Connect(function()
+	if KeyBox.Text == correctKey then
+		KeyError.Text = ""
+		KeyError.TextColor3 = Color3.fromRGB(0, 255, 120)
+		KeyError.Text = "Chave correta!"
+		task.wait(0.45)
+		acceptKey()
+	else
+		KeyError.Text = "Chave incorreta!"
+		KeyBox.Text = ""
+	end
+end)
+
+KeyBox.FocusLost:Connect(function(enter)
+	if enter then
+		if KeyBox.Text == correctKey then
+			KeyError.Text = "Chave correta!"
+			KeyError.TextColor3 = Color3.fromRGB(0, 255, 120)
+			task.wait(0.45)
+			acceptKey()
+		else
+			KeyError.Text = "Chave incorreta!"
+			KeyBox.Text = ""
+		end
+	end
+end)
+
+-- Espera a chave ser aceita antes de continuar
+repeat task.wait() until keyAccepted
+
+-- =========================================================
+-- ====================== RESTANTE DO SCRIPT ===============
+-- =========================================================
+
 local character, humanoid, rootPart
 
 local function getChar()
@@ -25,11 +150,9 @@ getChar()
 
 local TECLA_HUB = Enum.KeyCode.K
 
--- ====================== VELOCIDADES ======================
 local walkSpeed = 16
 local flySpeed = 55
 
--- ====================== ESTADOS ======================
 local flying = false
 local noclip = false
 local espEnabled = false
@@ -48,7 +171,6 @@ local hubOpen = true
 local originalTransparencies = {}
 local originalCanCollide = {}
 
--- ====================== SHADERS ======================
 local fullbrightEnabled = false
 local noFogEnabled = false
 local bloomEnabled = false
@@ -68,7 +190,6 @@ local originalLighting = {
 	ClockTime = Lighting.ClockTime
 }
 
--- ====================== AIM ASSIST ======================
 local aimEnabled = false
 local selectedTarget = nil
 local aimSmoothness = 0.18
@@ -76,22 +197,15 @@ local aimMaxDistance = 5000
 local aimPart = "Head"
 local aimConnection = nil
 
--- ====================== FPS ======================
 local currentFPS = 0
-
--- ====================== GRAVIDADE ======================
 local gravityOutside = 196.2
 local gravityInside = 196.2
-
--- ====================== FOV ======================
 local currentFOV = 70
 
--- ====================== TOUCH HUB ======================
 local tapCount = 0
 local lastTapTime = 0
 local TAP_WINDOW = 0.45
 
--- ====================== SOM ======================
 local function playClickSound()
 	local sound = Instance.new("Sound")
 	sound.SoundId = "rbxassetid://6895079853"
@@ -101,17 +215,7 @@ local function playClickSound()
 	sound.Ended:Connect(function() sound:Destroy() end)
 end
 
--- ====================== SCREEN GUI ======================
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NeonLightingHub"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.IgnoreGuiInset = true
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
-
--- =========================================================
--- ====================== TELA DE CARREGAMENTO =============
--- =========================================================
+-- Tela de Carregamento
 local LoadingFrame = Instance.new("Frame")
 LoadingFrame.Name = "LoadingScreen"
 LoadingFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -205,7 +309,7 @@ task.spawn(function()
 	LoadingPercent.Text = "100%"
 end)
 
--- ====================== HUB PRINCIPAL ======================
+-- Hub Principal
 local Main = Instance.new("Frame")
 Main.Name = "MainHub"
 Main.Size = UDim2.new(0.78, 0, 0.80, 0)
@@ -235,7 +339,6 @@ Background.ScaleType = Enum.ScaleType.Crop
 Background.ZIndex = 0
 Background.Parent = Main
 
--- Header
 local Header = Instance.new("Frame", Main)
 Header.Size = UDim2.new(1, 0, 0, 52)
 Header.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
@@ -284,7 +387,6 @@ CloseBtn.MouseLeave:Connect(function()
 	TweenService:Create(CloseBtn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(45, 20, 25)}):Play()
 end)
 
--- ====================== FUNÇÕES OPEN / CLOSE ======================
 local FloatingIcon
 
 local function openHub()
@@ -305,7 +407,7 @@ local function toggleHub()
 	if hubOpen then closeHub() else openHub() end
 end
 
--- ====================== ÍCONE FLUTUANTE COM "NL" ======================
+-- Ícone Flutuante com "NL"
 FloatingIcon = Instance.new("ImageButton")
 FloatingIcon.Name = "FloatingIcon"
 FloatingIcon.Size = UDim2.new(0, 64, 0, 64)
@@ -324,7 +426,6 @@ local iconStroke = Instance.new("UIStroke", FloatingIcon)
 iconStroke.Color = Color3.fromRGB(0, 190, 255)
 iconStroke.Thickness = 2.2
 
--- Texto "NL"
 local NLText = Instance.new("TextLabel")
 NLText.Name = "NLText"
 NLText.Size = UDim2.new(1, 0, 1, 0)
@@ -338,7 +439,6 @@ NLText.TextStrokeColor3 = Color3.fromRGB(0, 100, 150)
 NLText.ZIndex = 51
 NLText.Parent = FloatingIcon
 
--- Animação de pulso
 task.spawn(function()
 	while true do
 		if FloatingIcon and FloatingIcon.Visible then
@@ -380,7 +480,7 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
--- ====================== TABS ======================
+-- Tabs
 local TabBar = Instance.new("Frame", Main)
 TabBar.Size = UDim2.new(1, -20, 0, 36)
 TabBar.Position = UDim2.new(0, 10, 0, 58)
@@ -409,7 +509,6 @@ local TabAntiBtn    = createTab("AntiLag", 4)
 local TabGravityBtn = createTab("Gravity", 5)
 local TabFOVBtn     = createTab("FOV", 6)
 
--- ====================== PÁGINAS (Scrolling) ======================
 local function createPage()
 	local page = Instance.new("ScrollingFrame", Main)
 	page.Size = UDim2.new(1, -16, 1, -110)
@@ -478,7 +577,6 @@ TabFOVBtn.MouseButton1Click:Connect(function() switchPage("fov") end)
 
 setTabActive(TabMainBtn, true)
 
--- ====================== HELPERS ======================
 local function createButton(parent, text, color)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.94, 0, 0, 38)
@@ -600,11 +698,7 @@ local function setState(btn, state, onText, offText, color)
 	btn.BackgroundColor3 = state and color or Color3.fromRGB(22, 22, 28)
 end
 
--- =========================================================
--- ====================== CONTEÚDO DAS PÁGINAS =============
--- =========================================================
-
--- PRINCIPAL
+-- Conteúdo das páginas (Principal, Shaders, etc.)
 local FlyBtn     = createButton(PageMain, "Fly: OFF", Color3.fromRGB(0, 200, 255))
 local NoclipBtn  = createButton(PageMain, "Noclip: OFF", Color3.fromRGB(0, 255, 150))
 local ESPBtn     = createButton(PageMain, "ESP: OFF", Color3.fromRGB(255, 80, 80))
@@ -619,7 +713,6 @@ createSlider(PageMain, "Voo", 20, 200, 55, Color3.fromRGB(0, 200, 255), function
 	flySpeed = val
 end)
 
--- SHADERS
 local FullbrightBtn   = createButton(PageShaders, "Fullbright: OFF", Color3.fromRGB(255, 220, 50))
 local NoFogBtn        = createButton(PageShaders, "Sem Névoa: OFF", Color3.fromRGB(100, 200, 255))
 local BloomBtn        = createButton(PageShaders, "Bloom: OFF", Color3.fromRGB(255, 100, 200))
@@ -784,7 +877,6 @@ HighContrastBtn.MouseButton1Click:Connect(toggleHighContrast)
 BlackWhiteBtn.MouseButton1Click:Connect(toggleBlackWhite)
 BlurBtn.MouseButton1Click:Connect(toggleBlur)
 
--- AIMBOT
 local AimBtn = createButton(PageAim, "Aim Assist: OFF", Color3.fromRGB(255, 70, 70))
 
 local TargetLabel = Instance.new("TextLabel")
@@ -914,7 +1006,6 @@ createSlider(PageAim, "Distância", 50, 5000, 5000, Color3.fromRGB(255, 150, 50)
 	aimMaxDistance = v
 end)
 
--- ANTILAG
 local AntiLagBtn = createButton(PageAnti, "Anti-Lag: OFF", Color3.fromRGB(180, 100, 255))
 
 local FPSLabel = Instance.new("TextLabel")
@@ -973,7 +1064,6 @@ AntiInfo.TextSize = 12
 AntiInfo.TextYAlignment = Enum.TextYAlignment.Top
 AntiInfo.Parent = PageAnti
 
--- GRAVITY
 local GravityToggleBtn = createButton(PageGravity, "Gravidade: OFF", Color3.fromRGB(0, 200, 255))
 
 createSlider(PageGravity, "Gravidade FORA do carro", 0, 300, 196, Color3.fromRGB(0, 200, 255), function(val)
@@ -998,7 +1088,7 @@ local function toggleGravity()
 	gravityEnabled = not gravityEnabled
 	playClickSound()
 	if gravityEnabled then
-		setState(GravityToggleBtn, true, "Gravidade: ON", "Gravidade: OFF", Color3.fromRGB(0, 160, 200))
+		setState(GravityToggleBtn, true, "Gravidade: ON", "Gravidade: OFF", Color3.fromRGB(0,200))
 	else
 		workspace.Gravity = 196.2
 		setState(GravityToggleBtn, false, "Gravidade: ON", "Gravidade: OFF", Color3.fromRGB(0, 160, 200))
@@ -1006,7 +1096,6 @@ local function toggleGravity()
 end
 GravityToggleBtn.MouseButton1Click:Connect(toggleGravity)
 
--- FOV
 local FOVToggleBtn = createButton(PageFOV, "FOV: OFF", Color3.fromRGB(255, 140, 50))
 
 createSlider(PageFOV, "FOV (Campo de Visão)", 40, 120, 70, Color3.fromRGB(255, 140, 50), function(val)
@@ -1039,7 +1128,7 @@ local function toggleFOV()
 end
 FOVToggleBtn.MouseButton1Click:Connect(toggleFOV)
 
--- ====================== FUNÇÕES DE MOVIMENTO ======================
+-- Funções de movimento (Fly, Noclip, ESP, etc.)
 local function toggleFly()
 	if freecam then return end
 	flying = not flying
@@ -1256,7 +1345,6 @@ local function toggleFreeCam()
 	end
 end
 
--- ====================== SISTEMAS ======================
 RunService.Heartbeat:Connect(function()
 	if not gravityEnabled then return end
 	if not humanoid or not humanoid.Parent then return end
@@ -1279,7 +1367,6 @@ UserInputService.JumpRequest:Connect(function()
 	)
 end)
 
--- Conexões
 FlyBtn.MouseButton1Click:Connect(toggleFly)
 NoclipBtn.MouseButton1Click:Connect(toggleNoclip)
 ESPBtn.MouseButton1Click:Connect(toggleESP)
@@ -1316,7 +1403,6 @@ end)
 
 if humanoid then humanoid.WalkSpeed = walkSpeed end
 
--- Finalizar carregamento
 task.delay(2.8, function()
 	loadingFinished = true
 	if dotsConnection then dotsConnection:Disconnect() end
@@ -1333,4 +1419,4 @@ task.delay(2.8, function()
 	Main.Visible = true
 end)
 
-print("✅ Neon Lighting's (NL) | Interface Melhorada + Ícone NL")
+print("✅ Neon Lighting's (NL) | Sistema de Chave ativo")
