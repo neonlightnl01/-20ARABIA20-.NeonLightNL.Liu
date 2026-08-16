@@ -1,5 +1,5 @@
 -- Neon Lightings.Lua (NL) By arabia
--- Sistema de Chave + Farol/Setas + Interface Melhorada
+-- Farol ilumina + Setas amarelas piscando
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -15,7 +15,7 @@ local camera = workspace.CurrentCamera
 -- =========================================================
 -- ====================== SISTEMA DE CHAVE =================
 -- =========================================================
-local correctKey = "NL01"   -- << ALTERE A CHAVE AQUI
+local correctKey = "NLEXCLUSIVO1"   -- << ALTERE A CHAVE AQUI
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NeonLightingHub"
@@ -24,7 +24,6 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Tela de Chave
 local KeyFrame = Instance.new("Frame")
 KeyFrame.Name = "KeySystem"
 KeyFrame.Size = UDim2.new(0, 320, 0, 210)
@@ -105,7 +104,6 @@ end
 
 VerifyBtn.MouseButton1Click:Connect(function()
 	if KeyBox.Text == correctKey then
-		KeyError.Text = ""
 		KeyError.TextColor3 = Color3.fromRGB(0, 255, 120)
 		KeyError.Text = "Chave correta!"
 		task.wait(0.45)
@@ -119,8 +117,8 @@ end)
 KeyBox.FocusLost:Connect(function(enter)
 	if enter then
 		if KeyBox.Text == correctKey then
-			KeyError.Text = "Chave correta!"
 			KeyError.TextColor3 = Color3.fromRGB(0, 255, 120)
+			KeyError.Text = "Chave correta!"
 			task.wait(0.45)
 			acceptKey()
 		else
@@ -406,7 +404,7 @@ local function toggleHub()
 	if hubOpen then closeHub() else openHub() end
 end
 
--- Ícone Flutuante com "NL"
+-- Ícone Flutuante
 FloatingIcon = Instance.new("ImageButton")
 FloatingIcon.Name = "FloatingIcon"
 FloatingIcon.Size = UDim2.new(0, 64, 0, 64)
@@ -715,9 +713,7 @@ createSlider(PageMain, "Voo", 20, 200, 55, Color3.fromRGB(0, 200, 255), function
 	flySpeed = val
 end)
 
--- =========================================================
--- ====================== SHADERS ==========================
--- =========================================================
+-- SHADERS
 local FullbrightBtn   = createButton(PageShaders, "Fullbright: OFF", Color3.fromRGB(255, 220, 50))
 local NoFogBtn        = createButton(PageShaders, "Sem Névoa: OFF", Color3.fromRGB(100, 200, 255))
 local BloomBtn        = createButton(PageShaders, "Bloom: OFF", Color3.fromRGB(255, 100, 200))
@@ -1378,7 +1374,11 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- ====================== SISTEMA DE FAROL + SETAS ======================
+-- ====================== SISTEMA DE FAROL + SETAS (CORRIGIDO) ======================
+local blinkState = false
+local lastBlinkTime = 0
+local BLINK_SPEED = 0.4
+
 RunService.Heartbeat:Connect(function()
 	if not lightsEnabled then return end
 	if not humanoid or not humanoid.Parent then return end
@@ -1387,16 +1387,45 @@ RunService.Heartbeat:Connect(function()
 	local vehicle = humanoid.SeatPart:FindFirstAncestorOfClass("Model") or humanoid.SeatPart.Parent
 	if not vehicle then return end
 
+	-- Controla o pisca das setas
+	if tick() - lastBlinkTime >= BLINK_SPEED then
+		blinkState = not blinkState
+		lastBlinkTime = tick()
+	end
+
 	for _, obj in pairs(vehicle:GetDescendants()) do
-		if obj:IsA("SpotLight") or obj:IsA("SurfaceLight") or obj:IsA("PointLight") then
-			obj.Enabled = true
+		local name = string.lower(obj.Name)
+
+		-- FAROL (sempre aceso + ilumina)
+		local isFarol = name:find("farol") or name:find("headlight") or name:find("head") or name:find("frontlight") or name:find("luzfrente")
+
+		if isFarol then
+			if obj:IsA("SpotLight") or obj:IsA("SurfaceLight") or obj:IsA("PointLight") then
+				obj.Enabled = true
+				obj.Brightness = math.max(obj.Brightness, 4)
+				obj.Range = math.max(obj.Range, 70)
+				obj.Color = Color3.fromRGB(255, 255, 230)
+			elseif obj:IsA("BasePart") then
+				if obj.Material == Enum.Material.Neon then
+					obj.Color = Color3.fromRGB(255, 255, 230)
+					obj.Transparency = 0
+				end
+			end
 		end
 
-		local name = obj.Name:lower()
-		if obj:IsA("BasePart") then
-			if name:find("farol") or name:find("headlight") or name:find("light") or name:find("seta") or name:find("blink") or name:find("signal") or name:find("indicator") then
-				if obj.Material == Enum.Material.Neon then
-					obj.Transparency = 0
+		-- SETAS (amarelas + piscando)
+		local isSeta = name:find("seta") or name:find("blink") or name:find("signal") or name:find("turn") or name:find("indicator") or name:find("pisca") or name:find("alerta")
+
+		if isSeta then
+			if obj:IsA("SpotLight") or obj:IsA("SurfaceLight") or obj:IsA("PointLight") then
+				obj.Enabled = blinkState
+				obj.Color = Color3.fromRGB(255, 160, 0)
+				obj.Brightness = 5
+				obj.Range = math.max(obj.Range, 25)
+			elseif obj:IsA("BasePart") then
+				if obj.Material == Enum.Material.Neon or obj.Material == Enum.Material.SmoothPlastic then
+					obj.Color = Color3.fromRGB(255, 160, 0)
+					obj.Transparency = blinkState and 0 or 0.65
 				end
 			end
 		end
@@ -1470,4 +1499,4 @@ task.delay(2.8, function()
 	Main.Visible = true
 end)
 
-print("✅ Neon Lighting's (NL) | Farol + Setas adicionado")
+print("✅ Neon Lighting's (NL) | Farol ilumina + Setas amarelas piscando")
