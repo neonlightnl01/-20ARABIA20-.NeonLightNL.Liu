@@ -1,5 +1,5 @@
--- Neon Lightings.Lua (NL) By arabia
--- Farol ilumina + Setas amarelas piscando + Sistema de Marcha
+-- Neon Lights NL by arabia
+-- Farol + Setas + Sistema de Marcha
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -15,10 +15,10 @@ local camera = workspace.CurrentCamera
 -- =========================================================
 -- ====================== SISTEMA DE CHAVE =================
 -- =========================================================
-local correctKey = "NL01"   -- << chave
+local correctKey = "NL01"
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NeonLightingHub"
+ScreenGui.Name = "NeonLightsNL"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.IgnoreGuiInset = true
@@ -43,7 +43,7 @@ local KeyTitle = Instance.new("TextLabel", KeyFrame)
 KeyTitle.Size = UDim2.new(1, 0, 0, 35)
 KeyTitle.Position = UDim2.new(0, 0, 0, 15)
 KeyTitle.BackgroundTransparency = 1
-KeyTitle.Text = "Neon Lighting's"
+KeyTitle.Text = "Neon Lights NL"
 KeyTitle.TextColor3 = Color3.fromRGB(0, 220, 255)
 KeyTitle.Font = Enum.Font.GothamBold
 KeyTitle.TextSize = 20
@@ -160,7 +160,7 @@ local lightsEnabled = false
 
 -- Sistema de Marcha
 local gearLockEnabled = false
-local selectedGear = "N" -- R, N, 1, 2, 3, 4, 5, 6
+local selectedGear = "N"
 
 local bodyVelocity = nil
 local bodyGyro = nil
@@ -229,10 +229,10 @@ local LoadingTitle = Instance.new("TextLabel")
 LoadingTitle.Size = UDim2.new(1, 0, 0, 50)
 LoadingTitle.Position = UDim2.new(0, 0, 0.38, 0)
 LoadingTitle.BackgroundTransparency = 1
-LoadingTitle.Text = "Carregando Script da NL"
+LoadingTitle.Text = "Carregando Neon Lights NL"
 LoadingTitle.TextColor3 = Color3.fromRGB(0, 220, 255)
 LoadingTitle.Font = Enum.Font.GothamBold
-LoadingTitle.TextSize = 28
+LoadingTitle.TextSize = 26
 LoadingTitle.ZIndex = 101
 LoadingTitle.Parent = LoadingFrame
 
@@ -240,7 +240,7 @@ local LoadingSub = Instance.new("TextLabel")
 LoadingSub.Size = UDim2.new(1, 0, 0, 25)
 LoadingSub.Position = UDim2.new(0, 0, 0.45, 0)
 LoadingSub.BackgroundTransparency = 1
-LoadingSub.Text = "Neon Lighting's  •  By arabia"
+LoadingSub.Text = "Neon Lights NL  •  By arabia"
 LoadingSub.TextColor3 = Color3.fromRGB(160, 160, 175)
 LoadingSub.Font = Enum.Font.Gotham
 LoadingSub.TextSize = 14
@@ -351,7 +351,7 @@ local Title = Instance.new("TextLabel", Header)
 Title.Size = UDim2.new(1, -60, 0, 24)
 Title.Position = UDim2.new(0, 16, 0, 8)
 Title.BackgroundTransparency = 1
-Title.Text = "Neon Lighting's"
+Title.Text = "Neon Lights NL"
 Title.TextColor3 = Color3.fromRGB(0, 220, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 18
@@ -481,7 +481,7 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
--- Tabs (agora 7 abas)
+-- Tabs
 local TabBar = Instance.new("Frame", Main)
 TabBar.Size = UDim2.new(1, -20, 0, 36)
 TabBar.Position = UDim2.new(0, 10, 0, 58)
@@ -1203,7 +1203,7 @@ updateGearButtons()
 local GearInfo = Instance.new("TextLabel")
 GearInfo.Size = UDim2.new(0.94, 0, 0, 70)
 GearInfo.BackgroundTransparency = 1
-GearInfo.Text = "Como usar:\n1. Selecione a marcha desejada\n2. Ative \"Travar Marcha\"\nFunciona na maioria dos carros com Gear/CurrentGear"
+GearInfo.Text = "Como usar:\n1. Selecione a marcha\n2. Ative Travar Marcha\nForça a marcha continuamente"
 GearInfo.TextColor3 = Color3.fromRGB(140, 140, 155)
 GearInfo.Font = Enum.Font.Gotham
 GearInfo.TextSize = 12
@@ -1221,7 +1221,6 @@ local function toggleGearLock()
 end
 GearLockBtn.MouseButton1Click:Connect(toggleGearLock)
 
--- Função que força a marcha
 local function forceGear()
 	if not gearLockEnabled then return end
 	if not humanoid or not humanoid.Parent then return end
@@ -1230,35 +1229,31 @@ local function forceGear()
 	local vehicle = humanoid.SeatPart:FindFirstAncestorOfClass("Model") or humanoid.SeatPart.Parent
 	if not vehicle then return end
 
-	-- Procura valores comuns de marcha
-	local gearValue = vehicle:FindFirstChild("Gear", true)
-		or vehicle:FindFirstChild("CurrentGear", true)
-		or vehicle:FindFirstChild("gear", true)
-		or vehicle:FindFirstChild("Marcha", true)
-		or vehicle:FindFirstChild("currentGear", true)
+	local targetValue = selectedGear
+	if selectedGear == "R" then
+		targetValue = -1
+	elseif selectedGear == "N" then
+		targetValue = 0
+	else
+		targetValue = tonumber(selectedGear) or selectedGear
+	end
 
-	if gearValue then
-		if gearValue:IsA("StringValue") or gearValue:IsA("IntValue") or gearValue:IsA("NumberValue") then
-			pcall(function()
-				if typeof(gearValue.Value) == "string" then
-					gearValue.Value = selectedGear
-				else
-					-- Converte R/N para número se necessário
-					local num = tonumber(selectedGear)
-					if selectedGear == "R" then
-						gearValue.Value = -1
-					elseif selectedGear == "N" then
-						gearValue.Value = 0
-					elseif num then
-						gearValue.Value = num
+	for _, obj in pairs(vehicle:GetDescendants()) do
+		local name = string.lower(obj.Name)
+		if name:find("gear") or name:find("marcha") or name:find("currentgear") or name:find("cambio") or name:find("transmission") then
+			if obj:IsA("StringValue") or obj:IsA("IntValue") or obj:IsA("NumberValue") then
+				pcall(function()
+					if typeof(obj.Value) == "string" then
+						obj.Value = tostring(selectedGear)
+					else
+						obj.Value = targetValue
 					end
-				end
-			end)
+				end)
+			end
 		end
 	end
 end
 
--- Loop da trava de marcha
 RunService.Heartbeat:Connect(function()
 	if gearLockEnabled then
 		forceGear()
@@ -1495,7 +1490,7 @@ local function toggleFreeCam()
 	end
 end
 
--- ====================== SISTEMA DE GRAVIDADE ======================
+-- Gravidade
 RunService.Heartbeat:Connect(function()
 	if not gravityEnabled then return end
 	if not humanoid or not humanoid.Parent then return end
@@ -1506,7 +1501,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- ====================== SISTEMA DE FAROL + SETAS ======================
+-- Farol + Setas
 local blinkState = false
 local lastBlinkTime = 0
 local BLINK_SPEED = 0.4
@@ -1561,7 +1556,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- ====================== PULO CUSTOMIZADO ======================
+-- Pulo customizado
 UserInputService.JumpRequest:Connect(function()
 	if not gravityEnabled then return end
 	if not humanoid or not rootPart or not humanoid.Parent then return end
@@ -1628,4 +1623,4 @@ task.delay(2.8, function()
 	Main.Visible = true
 end)
 
-print("✅ Neon Lighting's (NL) | Farol + Setas + Sistema de Marcha")
+print("✅ Neon Lights NL | Farol + Setas + Marcha")
