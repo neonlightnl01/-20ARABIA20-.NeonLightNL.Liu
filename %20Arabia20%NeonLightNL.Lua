@@ -1,5 +1,5 @@
 -- Neon Lightings.Lua (NL) By arabia
--- Farol ilumina + Setas amarelas piscando
+-- Farol ilumina + Setas amarelas piscando + Sistema de Marcha
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -15,7 +15,7 @@ local camera = workspace.CurrentCamera
 -- =========================================================
 -- ====================== SISTEMA DE CHAVE =================
 -- =========================================================
-local correctKey = "NL123456789987654321"   -- << ALTERE A CHAVE AQUI
+local correctKey = "NL01"   -- << chave
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NeonLightingHub"
@@ -157,6 +157,10 @@ local antiLagEnabled = false
 local gravityEnabled = false
 local fovEnabled = false
 local lightsEnabled = false
+
+-- Sistema de Marcha
+local gearLockEnabled = false
+local selectedGear = "N" -- R, N, 1, 2, 3, 4, 5, 6
 
 local bodyVelocity = nil
 local bodyGyro = nil
@@ -477,7 +481,7 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
--- Tabs
+-- Tabs (agora 7 abas)
 local TabBar = Instance.new("Frame", Main)
 TabBar.Size = UDim2.new(1, -20, 0, 36)
 TabBar.Position = UDim2.new(0, 10, 0, 58)
@@ -486,13 +490,13 @@ TabBar.ZIndex = 2
 
 local function createTab(text, order)
 	local btn = Instance.new("TextButton", TabBar)
-	btn.Size = UDim2.new(1/6, -4, 1, 0)
-	btn.Position = UDim2.new((order-1)/6, 2, 0, 0)
+	btn.Size = UDim2.new(1/7, -3, 1, 0)
+	btn.Position = UDim2.new((order-1)/7, 1.5, 0, 0)
 	btn.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
 	btn.Text = text
 	btn.TextColor3 = Color3.fromRGB(170, 170, 180)
 	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 12
+	btn.TextSize = 11
 	btn.AutoButtonColor = false
 	btn.ZIndex = 3
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
@@ -505,6 +509,7 @@ local TabAimBtn     = createTab("Aimbot", 3)
 local TabAntiBtn    = createTab("AntiLag", 4)
 local TabGravityBtn = createTab("Gravity", 5)
 local TabFOVBtn     = createTab("FOV", 6)
+local TabMarchaBtn  = createTab("Marcha", 7)
 
 local function createPage()
 	local page = Instance.new("ScrollingFrame", Main)
@@ -537,6 +542,7 @@ local PageAim     = createPage()
 local PageAnti    = createPage()
 local PageGravity = createPage()
 local PageFOV     = createPage()
+local PageMarcha  = createPage()
 PageMain.Visible = true
 
 local function setTabActive(btn, active)
@@ -556,6 +562,7 @@ local function switchPage(pageName)
 	PageAnti.Visible    = pageName == "anti"
 	PageGravity.Visible = pageName == "gravity"
 	PageFOV.Visible     = pageName == "fov"
+	PageMarcha.Visible  = pageName == "marcha"
 
 	setTabActive(TabMainBtn,    pageName == "main")
 	setTabActive(TabShaderBtn,  pageName == "shaders")
@@ -563,6 +570,7 @@ local function switchPage(pageName)
 	setTabActive(TabAntiBtn,    pageName == "anti")
 	setTabActive(TabGravityBtn, pageName == "gravity")
 	setTabActive(TabFOVBtn,     pageName == "fov")
+	setTabActive(TabMarchaBtn,  pageName == "marcha")
 end
 
 TabMainBtn.MouseButton1Click:Connect(function() switchPage("main") end)
@@ -571,6 +579,7 @@ TabAimBtn.MouseButton1Click:Connect(function() switchPage("aim") end)
 TabAntiBtn.MouseButton1Click:Connect(function() switchPage("anti") end)
 TabGravityBtn.MouseButton1Click:Connect(function() switchPage("gravity") end)
 TabFOVBtn.MouseButton1Click:Connect(function() switchPage("fov") end)
+TabMarchaBtn.MouseButton1Click:Connect(function() switchPage("marcha") end)
 
 setTabActive(TabMainBtn, true)
 
@@ -1134,6 +1143,129 @@ end
 FOVToggleBtn.MouseButton1Click:Connect(toggleFOV)
 
 -- =========================================================
+-- ====================== ABA MARCHA =======================
+-- =========================================================
+local GearLockBtn = createButton(PageMarcha, "Travar Marcha: OFF", Color3.fromRGB(255, 100, 50))
+
+local GearLabel = Instance.new("TextLabel")
+GearLabel.Size = UDim2.new(0.94, 0, 0, 22)
+GearLabel.BackgroundTransparency = 1
+GearLabel.Text = "Marcha selecionada: N"
+GearLabel.TextColor3 = Color3.fromRGB(0, 220, 255)
+GearLabel.Font = Enum.Font.GothamBold
+GearLabel.TextSize = 14
+GearLabel.TextXAlignment = Enum.TextXAlignment.Left
+GearLabel.Parent = PageMarcha
+
+local GearContainer = Instance.new("Frame")
+GearContainer.Size = UDim2.new(0.94, 0, 0, 44)
+GearContainer.BackgroundTransparency = 1
+GearContainer.Parent = PageMarcha
+
+local gearButtons = {}
+local gearOptions = {"R", "N", "1", "2", "3", "4", "5", "6"}
+
+local function updateGearButtons()
+	for _, data in ipairs(gearButtons) do
+		if data.gear == selectedGear then
+			data.btn.BackgroundColor3 = Color3.fromRGB(0, 140, 200)
+			data.btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		else
+			data.btn.BackgroundColor3 = Color3.fromRGB(28, 28, 36)
+			data.btn.TextColor3 = Color3.fromRGB(200, 200, 210)
+		end
+	end
+	GearLabel.Text = "Marcha selecionada: " .. selectedGear
+end
+
+for i, gear in ipairs(gearOptions) do
+	local btn = Instance.new("TextButton", GearContainer)
+	btn.Size = UDim2.new(0.115, 0, 1, 0)
+	btn.Position = UDim2.new((i-1)*0.125, 0, 0, 0)
+	btn.BackgroundColor3 = Color3.fromRGB(28, 28, 36)
+	btn.Text = gear
+	btn.TextColor3 = Color3.fromRGB(200, 200, 210)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 15
+	btn.AutoButtonColor = false
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+
+	btn.MouseButton1Click:Connect(function()
+		selectedGear = gear
+		playClickSound()
+		updateGearButtons()
+	end)
+
+	table.insert(gearButtons, {btn = btn, gear = gear})
+end
+updateGearButtons()
+
+local GearInfo = Instance.new("TextLabel")
+GearInfo.Size = UDim2.new(0.94, 0, 0, 70)
+GearInfo.BackgroundTransparency = 1
+GearInfo.Text = "Como usar:\n1. Selecione a marcha desejada\n2. Ative \"Travar Marcha\"\nFunciona na maioria dos carros com Gear/CurrentGear"
+GearInfo.TextColor3 = Color3.fromRGB(140, 140, 155)
+GearInfo.Font = Enum.Font.Gotham
+GearInfo.TextSize = 12
+GearInfo.TextYAlignment = Enum.TextYAlignment.Top
+GearInfo.Parent = PageMarcha
+
+local function toggleGearLock()
+	gearLockEnabled = not gearLockEnabled
+	playClickSound()
+	if gearLockEnabled then
+		setState(GearLockBtn, true, "Travar Marcha: ON", "Travar Marcha: OFF", Color3.fromRGB(220, 80, 30))
+	else
+		setState(GearLockBtn, false, "Travar Marcha: ON", "Travar Marcha: OFF", Color3.fromRGB(220, 80, 30))
+	end
+end
+GearLockBtn.MouseButton1Click:Connect(toggleGearLock)
+
+-- Função que força a marcha
+local function forceGear()
+	if not gearLockEnabled then return end
+	if not humanoid or not humanoid.Parent then return end
+	if not humanoid.Sit or not humanoid.SeatPart then return end
+
+	local vehicle = humanoid.SeatPart:FindFirstAncestorOfClass("Model") or humanoid.SeatPart.Parent
+	if not vehicle then return end
+
+	-- Procura valores comuns de marcha
+	local gearValue = vehicle:FindFirstChild("Gear", true)
+		or vehicle:FindFirstChild("CurrentGear", true)
+		or vehicle:FindFirstChild("gear", true)
+		or vehicle:FindFirstChild("Marcha", true)
+		or vehicle:FindFirstChild("currentGear", true)
+
+	if gearValue then
+		if gearValue:IsA("StringValue") or gearValue:IsA("IntValue") or gearValue:IsA("NumberValue") then
+			pcall(function()
+				if typeof(gearValue.Value) == "string" then
+					gearValue.Value = selectedGear
+				else
+					-- Converte R/N para número se necessário
+					local num = tonumber(selectedGear)
+					if selectedGear == "R" then
+						gearValue.Value = -1
+					elseif selectedGear == "N" then
+						gearValue.Value = 0
+					elseif num then
+						gearValue.Value = num
+					end
+				end
+			end)
+		end
+	end
+end
+
+-- Loop da trava de marcha
+RunService.Heartbeat:Connect(function()
+	if gearLockEnabled then
+		forceGear()
+	end
+end)
+
+-- =========================================================
 -- ====================== FUNÇÕES ==========================
 -- =========================================================
 
@@ -1374,7 +1506,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- ====================== SISTEMA DE FAROL + SETAS (CORRIGIDO) ======================
+-- ====================== SISTEMA DE FAROL + SETAS ======================
 local blinkState = false
 local lastBlinkTime = 0
 local BLINK_SPEED = 0.4
@@ -1387,7 +1519,6 @@ RunService.Heartbeat:Connect(function()
 	local vehicle = humanoid.SeatPart:FindFirstAncestorOfClass("Model") or humanoid.SeatPart.Parent
 	if not vehicle then return end
 
-	-- Controla o pisca das setas
 	if tick() - lastBlinkTime >= BLINK_SPEED then
 		blinkState = not blinkState
 		lastBlinkTime = tick()
@@ -1396,7 +1527,6 @@ RunService.Heartbeat:Connect(function()
 	for _, obj in pairs(vehicle:GetDescendants()) do
 		local name = string.lower(obj.Name)
 
-		-- FAROL (sempre aceso + ilumina)
 		local isFarol = name:find("farol") or name:find("headlight") or name:find("head") or name:find("frontlight") or name:find("luzfrente")
 
 		if isFarol then
@@ -1413,7 +1543,6 @@ RunService.Heartbeat:Connect(function()
 			end
 		end
 
-		-- SETAS (amarelas + piscando)
 		local isSeta = name:find("seta") or name:find("blink") or name:find("signal") or name:find("turn") or name:find("indicator") or name:find("pisca") or name:find("alerta")
 
 		if isSeta then
@@ -1499,4 +1628,4 @@ task.delay(2.8, function()
 	Main.Visible = true
 end)
 
-print("✅ Neon Lighting's (NL) | Farol ilumina + Setas amarelas piscando")
+print("✅ Neon Lighting's (NL) | Farol + Setas + Sistema de Marcha")
