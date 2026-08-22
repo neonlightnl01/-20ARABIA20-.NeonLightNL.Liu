@@ -158,7 +158,6 @@ local gravityEnabled = false
 local fovEnabled = false
 local lightsEnabled = false
 
--- Sistema de Marcha
 local gearLockEnabled = false
 local selectedGear = "N"
 
@@ -330,16 +329,6 @@ stroke.Color = Color3.fromRGB(0, 190, 255)
 stroke.Thickness = 1.8
 stroke.Transparency = 0.15
 
-local Background = Instance.new("ImageLabel")
-Background.Name = "Background"
-Background.Size = UDim2.new(1, 0, 1, 0)
-Background.BackgroundTransparency = 1
-Background.Image = "rbxassetid://COLOQUE_O_ID_AQUI"
-Background.ImageTransparency = 0.72
-Background.ScaleType = Enum.ScaleType.Crop
-Background.ZIndex = 0
-Background.Parent = Main
-
 local Header = Instance.new("Frame", Main)
 Header.Size = UDim2.new(1, 0, 0, 52)
 Header.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
@@ -415,7 +404,7 @@ FloatingIcon.Size = UDim2.new(0, 64, 0, 64)
 FloatingIcon.Position = UDim2.new(1, -82, 0.5, -32)
 FloatingIcon.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
 FloatingIcon.BackgroundTransparency = 0.1
-FloatingIcon.Image = "rbxassetid://COLOQUE_O_ID_AQUI"
+FloatingIcon.Image = ""
 FloatingIcon.ScaleType = Enum.ScaleType.Fit
 FloatingIcon.Visible = false
 FloatingIcon.ZIndex = 50
@@ -704,9 +693,7 @@ local function setState(btn, state, onText, offText, color)
 	btn.BackgroundColor3 = state and color or Color3.fromRGB(22, 22, 28)
 end
 
--- =========================================================
--- ====================== PÁGINA PRINCIPAL =================
--- =========================================================
+-- Página Principal
 local FlyBtn     = createButton(PageMain, "Fly: OFF", Color3.fromRGB(0, 200, 255))
 local NoclipBtn  = createButton(PageMain, "Noclip: OFF", Color3.fromRGB(0, 255, 150))
 local ESPBtn     = createButton(PageMain, "ESP: OFF", Color3.fromRGB(255, 80, 80))
@@ -722,7 +709,7 @@ createSlider(PageMain, "Voo", 20, 200, 55, Color3.fromRGB(0, 200, 255), function
 	flySpeed = val
 end)
 
--- SHADERS
+-- Shaders
 local FullbrightBtn   = createButton(PageShaders, "Fullbright: OFF", Color3.fromRGB(255, 220, 50))
 local NoFogBtn        = createButton(PageShaders, "Sem Névoa: OFF", Color3.fromRGB(100, 200, 255))
 local BloomBtn        = createButton(PageShaders, "Bloom: OFF", Color3.fromRGB(255, 100, 200))
@@ -887,7 +874,7 @@ HighContrastBtn.MouseButton1Click:Connect(toggleHighContrast)
 BlackWhiteBtn.MouseButton1Click:Connect(toggleBlackWhite)
 BlurBtn.MouseButton1Click:Connect(toggleBlur)
 
--- AIMBOT
+-- Aimbot
 local AimBtn = createButton(PageAim, "Aim Assist: OFF", Color3.fromRGB(255, 70, 70))
 
 local TargetLabel = Instance.new("TextLabel")
@@ -1017,7 +1004,7 @@ createSlider(PageAim, "Distância", 50, 5000, 5000, Color3.fromRGB(255, 150, 50)
 	aimMaxDistance = v
 end)
 
--- ANTILAG
+-- AntiLag
 local AntiLagBtn = createButton(PageAnti, "Anti-Lag: OFF", Color3.fromRGB(180, 100, 255))
 
 local FPSLabel = Instance.new("TextLabel")
@@ -1066,17 +1053,7 @@ for i, opt in ipairs(fpsOptions) do
 end
 setFPS(0)
 
-local AntiInfo = Instance.new("TextLabel")
-AntiInfo.Size = UDim2.new(0.94, 0, 0, 70)
-AntiInfo.BackgroundTransparency = 1
-AntiInfo.Text = "Anti-Lag otimizado:\n• Qualidade baixa\n• Remove sombras e névoa\n• Desativa partículas (1x)"
-AntiInfo.TextColor3 = Color3.fromRGB(140, 140, 155)
-AntiInfo.Font = Enum.Font.Gotham
-AntiInfo.TextSize = 12
-AntiInfo.TextYAlignment = Enum.TextYAlignment.Top
-AntiInfo.Parent = PageAnti
-
--- GRAVITY
+-- Gravity
 local GravityToggleBtn = createButton(PageGravity, "Gravidade: OFF", Color3.fromRGB(0, 200, 255))
 
 createSlider(PageGravity, "Gravidade FORA do carro", 0, 300, 196, Color3.fromRGB(0, 200, 255), function(val)
@@ -1086,16 +1063,6 @@ end)
 createSlider(PageGravity, "Gravidade DENTRO do carro", 0, 300, 196, Color3.fromRGB(0, 180, 140), function(val)
 	gravityInside = val
 end)
-
-local GravInfo = Instance.new("TextLabel")
-GravInfo.Size = UDim2.new(0.94, 0, 0, 60)
-GravInfo.BackgroundTransparency = 1
-GravInfo.Text = "Ative o botão acima para usar.\nPulo funciona mesmo em Gravidade 0."
-GravInfo.TextColor3 = Color3.fromRGB(140, 140, 155)
-GravInfo.Font = Enum.Font.Gotham
-GravInfo.TextSize = 12
-GravInfo.TextYAlignment = Enum.TextYAlignment.Top
-GravInfo.Parent = PageGravity
 
 local function toggleGravity()
 	gravityEnabled = not gravityEnabled
@@ -1118,16 +1085,6 @@ createSlider(PageFOV, "FOV (Campo de Visão)", 40, 120, 70, Color3.fromRGB(255, 
 		pcall(function() workspace.CurrentCamera.FieldOfView = val end)
 	end
 end)
-
-local FOVInfo = Instance.new("TextLabel")
-FOVInfo.Size = UDim2.new(0.94, 0, 0, 50)
-FOVInfo.BackgroundTransparency = 1
-FOVInfo.Text = "Ative o botão acima para usar o FOV."
-FOVInfo.TextColor3 = Color3.fromRGB(140, 140, 155)
-FOVInfo.Font = Enum.Font.Gotham
-FOVInfo.TextSize = 12
-FOVInfo.TextYAlignment = Enum.TextYAlignment.Top
-FOVInfo.Parent = PageFOV
 
 local function toggleFOV()
 	fovEnabled = not fovEnabled
@@ -1200,16 +1157,6 @@ for i, gear in ipairs(gearOptions) do
 end
 updateGearButtons()
 
-local GearInfo = Instance.new("TextLabel")
-GearInfo.Size = UDim2.new(0.94, 0, 0, 70)
-GearInfo.BackgroundTransparency = 1
-GearInfo.Text = "Como usar:\n1. Selecione a marcha\n2. Ative Travar Marcha\nForça a marcha continuamente"
-GearInfo.TextColor3 = Color3.fromRGB(140, 140, 155)
-GearInfo.Font = Enum.Font.Gotham
-GearInfo.TextSize = 12
-GearInfo.TextYAlignment = Enum.TextYAlignment.Top
-GearInfo.Parent = PageMarcha
-
 local function toggleGearLock()
 	gearLockEnabled = not gearLockEnabled
 	playClickSound()
@@ -1260,10 +1207,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- =========================================================
--- ====================== FUNÇÕES ==========================
--- =========================================================
-
+-- Funções
 local function toggleLights()
 	lightsEnabled = not lightsEnabled
 	playClickSound()
@@ -1556,7 +1500,7 @@ RunService.Heartbeat:Connect(function()
 	end
 end)
 
--- Pulo customizado
+-- Pulo
 UserInputService.JumpRequest:Connect(function()
 	if not gravityEnabled then return end
 	if not humanoid or not rootPart or not humanoid.Parent then return end
@@ -1623,4 +1567,4 @@ task.delay(2.8, function()
 	Main.Visible = true
 end)
 
-print("✅ Neon Lights NL | Farol + Setas + Marcha")
+print("✅ Neon Lights NL carregado!")
